@@ -201,6 +201,31 @@ object Combinators {
     }
     def andThen[B](b: Parser[B]): Parser[~[T,B]] = this.~(b)
 
+    // combines two parsers but only use the first once
+    def onceAndThen[B >: T](b: Parser[B]): Parser[B] = {
+      val a = this
+      new Parser[B] {
+        var donea: Option[T] = None
+        var doneb: Option[B] = None
+        def parse(data: DataBuffer): Option[B] = {
+          if (donea.isEmpty) {
+            donea = a.parse(data)
+            if (donea.isDefined) donea
+            else None
+          } else {
+            doneb = b.parse(data)
+            if (doneb.isDefined) {
+              val res = doneb
+              doneb = None
+              res
+            } else {
+              None
+            }
+          }
+        }
+      }
+    }
+
     //combines two parsers but discards the result from the second.  Useful for
     //skipping over data
     def <~[B](b: Parser[B]): Parser[T] = this ~ b >> {_.a}
