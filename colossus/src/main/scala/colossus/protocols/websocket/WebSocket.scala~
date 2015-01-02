@@ -1,0 +1,5 @@
+package colossus
+package protocol.redis
+
+case class WebSocket
+  

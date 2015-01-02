@@ -90,6 +90,14 @@ class CombinatorSuite extends WordSpec with MustMatchers{
       parser.parse(d) must equal (Some(new ~(bstr("123"), bstr("abcd"))))
     }
 
+    "combine once and then" in {
+      val parser = bytes(3) onceAndThen bytes(2)
+      val d = data("123abcd")
+      parser.parse(d) must equal (Some(bstr("123")))
+      parser.parse(d) must equal (Some(bstr("ab")))
+      parser.parse(d) must equal (Some(bstr("cd")))
+    }
+
     "combine more complex parsers" in {
       val parser = bytes(3) ~ repeat(2, bytes(3)) ~ bytes(4)
       val d = data("123x00x11abcd")

@@ -1,0 +1,15 @@
+package colossus
+package protocols.websocket
+
+import core._
+import parsing._
+import akka.util.ByteString
+
+import colossus.parsing._
+import HttpParse._
+import Combinators._
+import DataSize._
+
+class WebSocketServerCodec extends Codec.ServerCodec[WebSocket, WebSocket] {
+  private var parser = byte |> {
+    case 'H' => 
