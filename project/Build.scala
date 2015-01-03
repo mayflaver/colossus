@@ -27,7 +27,8 @@ object ColossusBuild extends Build {
       "org.scalatest"     %% "scalatest" % SCALATEST_VERSION % "test",
       "org.mockito" % "mockito-all" % "1.9.5" % "test",
       "com.github.nscala-time" %% "nscala-time" % "1.2.0",
-      "commons-io" %% "commons-io" % "2.4"
+      "commons-io" % "commons-io" % "2.4",
+      "commons-codec" % "commons-codec" % "1.10"
 
     )
   )

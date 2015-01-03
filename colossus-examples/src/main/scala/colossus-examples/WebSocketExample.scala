@@ -8,8 +8,8 @@ import colossus.protocols.http.{HttpResponse, HttpVersion, HttpCodes}
 import colossus.controller._
 import colossus.protocols.websocket._
 import java.security.MessageDigest
+import org.apache.commons.io.Charsets.UTF_8
 import org.apache.commons.codec.binary.Base64
-import org.apache.commons.codec.Charsets.UTF_8
 
 /*
  * The controller layer adds generalized message processing to a connection.  A
@@ -37,14 +37,18 @@ class WebSocketChatHandler() extends Controller[WebSocket, WebSocket](new WebSoc
   protected def connectionLost(cause: colossus.core.DisconnectError){}
   def idleCheck(period: scala.concurrent.duration.Duration){}
 
-  def receivedMessage(message: Any,sender: akka.actor.ActorRef){
+  def receivedMessage(message: Any,sender: akka.actor.ActorRef): Unit ={
+    message match {
+      case c: WebSocket => push(c){_ => ()}
+      case _ => {}
+    }
+
   }
 
 
   def processMessage(request: WebSocket) {
-    val response = request match {
+    request match {
       case request: WebSocketRequest =>
-        println(request.request.head.headers)
         val headers = request.request.head.headers.foldLeft(List[(String, String)]()) { (headers, keyVal) =>
           val low = (keyVal._1.toLowerCase, keyVal._2)
           keyVal match {
@@ -67,15 +71,12 @@ class WebSocketChatHandler() extends Controller[WebSocket, WebSocket](new WebSoc
           }
         }
         println(headers)
-        WebSocketResponse(HttpResponse(HttpVersion.`1.1`, HttpCodes.SWITCHING_PROTOCOLS, ByteString(""), headers))
-
+        val response = WebSocketResponse(HttpResponse(HttpVersion.`1.1`, HttpCodes.SWITCHING_PROTOCOLS, ByteString(""), headers))
+        push(response){_ => ()}
       case body: WebSocketData =>
-        println("message body")
-        WebSocketData("message")
+        println(body.message)
+        push(WebSocketData("hello world")) {_ => {}}
     }
-
-    push(response){_ => ()}
-
 
   }
 
