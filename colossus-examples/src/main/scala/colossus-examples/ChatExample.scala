@@ -43,7 +43,7 @@ class ChatCodec extends Codec[ChatMessage, String]{
 
 }
   
-class Broadcaster extends Actor {
+class   Broadcaster extends Actor {
   import Broadcaster._
 
   case class Client(worker: ActorRef, id: Long)

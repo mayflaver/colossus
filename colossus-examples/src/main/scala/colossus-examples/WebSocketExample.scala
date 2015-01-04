@@ -1,15 +1,8 @@
 package colossus.examples
 
-import akka.util.ByteString
 import colossus.IOSystem
 import colossus.core._
-import colossus.protocol.websocket.{WebSocketData, WebSocketResponse, WebSocketRequest, WebSocket}
-import colossus.protocols.http.{HttpResponse, HttpVersion, HttpCodes}
-import colossus.controller._
-import colossus.protocols.websocket._
-import java.security.MessageDigest
-import org.apache.commons.io.Charsets.UTF_8
-import org.apache.commons.codec.binary.Base64
+import colossus.protocols.websocket.WebSocketHandler
 
 /*
  * The controller layer adds generalized message processing to a connection.  A
@@ -24,77 +17,35 @@ import org.apache.commons.codec.binary.Base64
  */
 
 
-class WebSocketChatHandler() extends Controller[WebSocket, WebSocket](new WebSocketServerCodec, ControllerConfig(50)) {
-  implicit lazy val sender = boundWorker.get.worker
 
-  // Members declared in colossus.core.ConnectionHandler
-  override def connected(endpoint: colossus.core.WriteEndpoint) {
-    super.connected(endpoint)
-    //push(Status("Please enter your name")){_ => ()}
+
+class DemoHandler extends WebSocketHandler {
+  def onMessage(data: String): Unit = {
+    println(data)
   }
-
-  protected def connectionClosed(cause: colossus.core.DisconnectCause){}
-  protected def connectionLost(cause: colossus.core.DisconnectError){}
-  def idleCheck(period: scala.concurrent.duration.Duration){}
-
-  def receivedMessage(message: Any,sender: akka.actor.ActorRef): Unit ={
-    message match {
-      case c: WebSocket => push(c){_ => ()}
-      case _ => {}
-    }
-
+  def onClose(data: String): Unit = {
+    println("close")
   }
-
-
-  def processMessage(request: WebSocket) {
-    request match {
-      case request: WebSocketRequest =>
-        val headers = request.request.head.headers.foldLeft(List[(String, String)]()) { (headers, keyVal) =>
-          val low = (keyVal._1.toLowerCase, keyVal._2)
-          keyVal match {
-            case ("connection", "Upgrade") =>
-              ("Connection", "Upgrade")::headers
-            case ("upgrade", "websocket") =>
-              ("Upgrade", "websocket")::headers
-            case ("host", host) =>
-              headers
-            case ("origin", origin) =>
-              headers
-            case ("sec-websocket-version", secWebSocketVersion) =>
-              headers
-            case ("sec-websocket-key", secWebSocketKey) =>
-              val md = MessageDigest.getInstance("SHA1")
-              val sha1 = md.digest((secWebSocketKey+"258EAFA5-E914-47DA-95CA-C5AB0DC85B11").getBytes(UTF_8))
-              val accept = new String(Base64.encodeBase64(sha1))
-              ("Sec-WebSocket-Accept", accept)::headers
-            case _ => headers
-          }
-        }
-        println(headers)
-        val response = WebSocketResponse(HttpResponse(HttpVersion.`1.1`, HttpCodes.SWITCHING_PROTOCOLS, ByteString(""), headers))
-        push(response){_ => ()}
-      case body: WebSocketData =>
-        println(body.message)
-        push(WebSocketData("hello world")) {_ => {}}
-    }
-
+  def onPing(data: String): Unit = {
+    println("ping")
   }
-
-  override def connectionTerminated(cause: DisconnectCause) {
-    super.connectionTerminated(cause)
+  def onPong(data: String): Unit = {
+    println("pong")
+  }
+  def writeMessage(data: String): Unit = {}
+  def receivedMessage(message: Any,sender: akka.actor.ActorRef){
   }
 
 }
 
 class WebSocketChatDelegator(server: ServerRef, worker: WorkerRef) extends Delegator(server, worker) {
 
-  def acceptNewConnection = Some(new WebSocketChatHandler)
+  def acceptNewConnection = Some(new DemoHandler())
 }
 
 object WebSocketExample {
 
   def start(port: Int)(implicit io: IOSystem): ServerRef = {
-    //val broadcaster = io.actorSystem.actorOf(Props[Broadcaster])
     val echoConfig = ServerConfig(
       name = "chat",
       settings = ServerSettings(

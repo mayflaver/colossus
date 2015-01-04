@@ -7,8 +7,19 @@ import protocols.http.{HttpRequest, HttpResponse}
 import java.nio.ByteOrder
 
 sealed trait WebSocket {
-  implicit val byteOrder = ByteOrder.BIG_ENDIAN
   def bytes(): DataBuffer
+}
+
+case class WebSocketRequest(request: HttpRequest) extends WebSocket {
+  def bytes(): DataBuffer = DataBuffer(request.bytes)
+}
+
+case class WebSocketResponse(response: HttpResponse) extends WebSocket {
+  def bytes() = response.bytes
+}
+
+sealed trait WebSocketBaseFrame extends WebSocket {
+  implicit val byteOrder = ByteOrder.BIG_ENDIAN
   def onFrame(opcode: Byte, data: String) = {
     val finalFrame: Byte =  0x80.toByte
     val builder = new ByteStringBuilder
@@ -26,37 +37,31 @@ sealed trait WebSocket {
     }
 
     builder.putBytes(data.getBytes)
-
-    println(builder.result)
     DataBuffer(builder.result())
   }
 }
 
-case class WebSocketRequest(request: HttpRequest) extends WebSocket {
-  def bytes() = DataBuffer(request.bytes)
-}
-
-case class WebSocketResponse(response: HttpResponse) extends WebSocket {
-  def bytes() = response.bytes
-}
-
-case class WebSocketData(message: String) extends WebSocket {
+case class WebSocketText(message: String) extends WebSocketBaseFrame {
   def bytes() = onFrame(0x1.toByte, message)
 }
 
-case class WebSocketClose(message: String) extends WebSocket {
-  def bytes() = DataBuffer(ByteString(message))
+case class WebSocketBinary(message: String) extends WebSocketBaseFrame {
+  def bytes() = onFrame(0x2.toByte, message)
 }
 
-case class WebSocketPing(message: String) extends WebSocket {
-  def bytes() = DataBuffer(ByteString(message))
+case class WebSocketClose(message: String) extends WebSocketBaseFrame {
+  def bytes() = onFrame(0x8.toByte, message)
 }
 
-case class WebSocketPong(message: String) extends WebSocket {
-  def bytes() = DataBuffer(ByteString(message))
+case class WebSocketPing(message: String) extends WebSocketBaseFrame {
+  def bytes() = onFrame(0x9.toByte, message)
 }
 
-case class WebSocketContinuation(message: String) extends WebSocket {
+case class WebSocketPong(message: String) extends WebSocketBaseFrame {
+  def bytes() = onFrame(0xA.toByte, message)
+}
+
+case class WebSocketContinuation(message: String) extends WebSocketBaseFrame {
   def bytes() = DataBuffer(ByteString(message))
 }
 
