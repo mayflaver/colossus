@@ -14,11 +14,14 @@ object ColossusBuild extends Build {
     compile <<= (compile in Compile) dependsOn (compile in Test),
     
     organization := "com.tumblr",
-    scalaVersion  := "2.11.2",
+    scalaVersion  := "2.10.2",
     crossScalaVersions := Seq("2.10.4", "2.11.2"),
     version                   := "0.5.1-RC2",
     parallelExecution in Test := false,
     scalacOptions             ++= Seq("-feature", "-language:implicitConversions", "-language:postfixOps", "-unchecked", "-deprecation"),
+    resolvers ++= Seq(
+      "Typesafe Repo" at "http://repo.typesafe.com/typesafe/releases/"
+    ),
 
     libraryDependencies ++= Seq (
       "com.typesafe.akka" %% "akka-actor"   % AKKA_VERSION,
@@ -28,7 +31,8 @@ object ColossusBuild extends Build {
       "org.mockito" % "mockito-all" % "1.9.5" % "test",
       "com.github.nscala-time" %% "nscala-time" % "1.2.0",
       "commons-io" % "commons-io" % "2.4",
-      "commons-codec" % "commons-codec" % "1.10"
+      "commons-codec" % "commons-codec" % "1.10",
+      "com.typesafe.play" %% "play-json" % "2.2.0"
 
     )
   )

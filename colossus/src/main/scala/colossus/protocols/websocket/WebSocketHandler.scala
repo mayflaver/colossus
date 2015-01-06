@@ -27,9 +27,10 @@ abstract  class WebSocketHandler extends Controller[WebSocket, WebSocket](new We
   def onClose(data: String): Unit
   def onPing(data: String): Unit
   def onPong(data: String): Unit
-  def writeMessage(data: String): Unit
+  def writeMessage(data: String): Unit = {
+    push(WebSocketText(data)){_ => ()}
+  }
   def close(): Unit = {
-    println("close")
     push(WebSocketClose("")) { _ => {}}
   }
 
@@ -85,7 +86,7 @@ abstract  class WebSocketHandler extends Controller[WebSocket, WebSocket](new We
 
   override def connectionTerminated(cause: DisconnectCause) {
     super.connectionTerminated(cause)
-    close()
+    onClose("")
   }
 
 }
