@@ -36,6 +36,9 @@ object Main extends App {
   //chat server using the controller layer
   val chatServer = ChatExample.start(9005)
 
+  // websocket server 
+  val websocketServer = WebSocketExample.start(9006)
+
 
   import service._
   import protocols.http._
