@@ -13,7 +13,7 @@ object ColossusBuild extends Build {
 
     compile <<= (compile in Compile) dependsOn (compile in Test),
     
-    organization := "com.tumblr",
+    organization := "mayflower",
     scalaVersion  := "2.11.4",
     crossScalaVersions := Seq("2.10.4", "2.11.2"),
     version                   := "0.6.0-M3",

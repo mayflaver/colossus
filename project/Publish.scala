@@ -13,8 +13,8 @@ object Publish {
 
   lazy val settings = Seq(
     publishMavenStyle := true,
-    
-    publishTo := (if(isSnapshot.value) snapshots else releases),
+
+    publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository"))),
 
     publishArtifact in Test := false,
 
